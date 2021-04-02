@@ -1,12 +1,13 @@
 use std::net::SocketAddr;
 use warp::Filter;
+use std::net::IpAddr;
 
 #[tokio::main]
 async fn main() {
     let x_forwarded_for_header =
-        warp::header::optional::<String>("x-forwarded-for").map(|addr: Option<String>| {
+        warp::header::optional::<String>("X-Forwarded-For").map(|addr: Option<String>| {
             if let Some(addr) = addr {
-                addr.parse::<SocketAddr>().ok()
+                addr.parse::<IpAddr>().ok()
             } else {
                 None
             }
@@ -16,9 +17,9 @@ async fn main() {
     let root = warp::path::end()
         .and(x_forwarded_for_header)
         .and(remote_addr)
-        .map(|addr1: Option<SocketAddr>, addr2: Option<SocketAddr>| {
+        .map(|addr1: Option<IpAddr>, addr2: Option<SocketAddr>| {
             if let Some(addr) = addr1 {
-                format!("{}", addr.ip())
+                format!("{}", addr)
             } else if let Some(addr) = addr2 {
                 format!("{}", addr.ip())
             } else {
